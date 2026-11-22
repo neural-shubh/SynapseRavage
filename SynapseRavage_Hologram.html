@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SYNAPSERAVAGE // Neural Infection Interface</title>
+<style>
+:root{
+  --cyan:#65eaff;--blue:#258dff;--red:#ff315d;--violet:#a56bff;
+  --bg:#030711;--panel:rgba(7,18,34,.72);--line:rgba(101,234,255,.22);
+  --muted:#7192a8;--white:#dffaff;
+}
+*{box-sizing:border-box}
+html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--white);font-family:Inter,Segoe UI,Arial,sans-serif}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:2;background:repeating-linear-gradient(0deg,transparent 0 3px,rgba(100,220,255,.025) 4px);mix-blend-mode:screen}
+#space{position:fixed;inset:0;width:100%;height:100%;z-index:0}
+.vignette{position:fixed;inset:0;z-index:1;pointer-events:none;background:radial-gradient(ellipse at 50% 48%,transparent 25%,rgba(0,0,0,.35) 100%)}
+.ui{position:relative;z-index:3;height:100%;display:grid;grid-template-rows:auto 1fr auto;padding:24px 30px;pointer-events:none}
+header,.bottom,.panel,.controls{pointer-events:auto}
+header{display:flex;align-items:flex-start;justify-content:space-between;gap:20px}
+.brand{letter-spacing:.32em;font-size:12px;color:var(--cyan);font-weight:800;text-shadow:0 0 14px #28dfff}
+.brand strong{display:block;color:#e8fcff;font-size:clamp(20px,3vw,31px);letter-spacing:.17em;margin-top:7px}
+.sub{font-size:9px;letter-spacing:.28em;color:#7599ae;margin-top:7px}
+.status{border:1px solid rgba(101,234,255,.35);background:rgba(3,17,31,.65);padding:10px 14px;font-size:10px;letter-spacing:.16em;color:var(--cyan);box-shadow:0 0 20px rgba(40,210,255,.08);white-space:nowrap}
+.status i{display:inline-block;width:7px;height:7px;background:#69ffcb;border-radius:50%;margin-right:8px;box-shadow:0 0 10px #69ffcb}
+.stage{position:relative;display:flex;align-items:center;justify-content:center;min-height:0}
+.center-label{position:absolute;top:6%;left:50%;transform:translateX(-50%);text-align:center;letter-spacing:.24em;font-size:10px;color:#8ac9d9;white-space:nowrap;text-shadow:0 0 12px #36dfff}
+.center-label b{display:block;font-size:clamp(18px,2.4vw,27px);color:#e3fcff;letter-spacing:.18em;margin-top:9px}
+.panel{position:absolute;top:20%;width:220px;padding:15px 16px;background:linear-gradient(135deg,rgba(8,27,48,.78),rgba(4,10,22,.58));border:1px solid var(--line);box-shadow:0 0 28px rgba(37,180,255,.08),inset 0 0 20px rgba(74,220,255,.035);backdrop-filter:blur(8px)}
+.panel.left{left:0}.panel.right{right:0}
+.panel h3{font-size:10px;letter-spacing:.2em;color:var(--cyan);margin:0 0 13px;font-weight:700}
+.metric{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:#85a9bd;margin:9px 0}
+.metric b{color:#e4fbff;font-weight:600}
+.bar{height:3px;background:#173348;margin-top:5px;overflow:hidden}
+.bar span{display:block;height:100%;width:100%;background:linear-gradient(90deg,var(--cyan),var(--blue));box-shadow:0 0 9px var(--cyan);transition:width .8s}
+.panel.right .bar span{background:linear-gradient(90deg,var(--red),var(--violet));box-shadow:0 0 9px var(--red)}
+.panel .tiny{font-size:8px;letter-spacing:.12em;color:#5d8096;margin-top:13px;line-height:1.6}
+.controls{position:absolute;bottom:5%;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center}
+button{cursor:pointer;border:1px solid rgba(101,234,255,.45);background:rgba(4,21,37,.82);color:#c9faff;padding:11px 17px;font-size:9px;letter-spacing:.16em;font-weight:700;transition:.2s;box-shadow:0 0 16px rgba(44,209,255,.08)}
+button:hover{background:rgba(16,55,79,.95);box-shadow:0 0 22px rgba(44,209,255,.25);transform:translateY(-1px)}
+button.danger{border-color:rgba(255,49,93,.55);color:#ff9bad}
+button.danger:hover{background:rgba(80,15,35,.85);box-shadow:0 0 22px rgba(255,49,93,.2)}
+.bottom{display:flex;align-items:flex-end;justify-content:space-between;gap:20px;color:#52758c;font-size:8px;letter-spacing:.2em}
+.bottom .legend{display:flex;gap:18px;flex-wrap:wrap}
+.dot{display:inline-block;width:6px;height:6px;border-radius:50%;margin-right:6px;box-shadow:0 0 8px currentColor}
+.readout{text-align:right;max-width:330px;line-height:1.7}
+#toast{position:absolute;top:16%;left:50%;transform:translateX(-50%);font-size:9px;letter-spacing:.22em;color:#ff7d98;text-shadow:0 0 14px #ff315d;opacity:0;transition:opacity .4s;white-space:nowrap}
+@media(max-width:760px){
+ .ui{padding:17px 15px}.panel{width:165px;top:auto;bottom:19%;padding:11px}.panel.left{left:-5px}.panel.right{right:-5px}
+ .panel h3{font-size:8px}.metric{font-size:8px}.center-label{top:10%}
+ .bottom{font-size:7px}.readout{display:none}.controls{bottom:5%}button{padding:10px 12px;font-size:8px}
+}
+@media(max-width:480px){.panel{width:142px}.panel.left{left:-10px}.panel.right{right:-10px}.status{font-size:8px;padding:8px}.sub{font-size:7px}}
+</style>
+</head>
+<body>
+<canvas id="space"></canvas><div class="vignette"></div>
+<div class="ui">
+<header>
+  <div>
+    <div class="brand">OSCORP // RESEARCH DIVISION<strong>SYNAPSERAVAGE</strong></div>
+    <div class="sub">NEURAL CORRUPTION &amp; RECOVERY LAB · SIMULATION 001</div>
+  </div>
+  <div class="status"><i></i><span id="status">HOST NETWORK ONLINE</span></div>
+</header>
+<main class="stage">
+  <div class="center-label">LIVE NEURAL SPECIMEN<b id="phase">HEALTHY NETWORK</b></div>
+  <div id="toast">SYMBIOTE SIGNATURE DETECTED</div>
+  <section class="panel left">
+    <h3>01 / HOST DIAGNOSTICS</h3>
+    <div class="metric"><span>NEURONS</span><b id="neurons">64</b></div>
+    <div class="metric"><span>CONNECTIONS</span><b id="connections">128</b></div>
+    <div class="metric"><span>BASELINE ACCURACY</span><b>96.5%</b></div>
+    <div class="metric"><span>HOST INTEGRITY</span><b id="integrity">100%</b></div>
+    <div class="bar"><span id="integrityBar"></span></div>
+    <div class="tiny">LAYER MAP · INPUT → HIDDEN A → HIDDEN B → OUTPUT</div>
+  </section>
+  <section class="panel right">
+    <h3>02 / SYMBIOTE ACTIVITY</h3>
+    <div class="metric"><span>INFECTION LEVEL</span><b id="infection">0%</b></div>
+    <div class="bar"><span id="infectionBar" style="width:0%"></span></div>
+    <div class="metric"><span>WEIGHT DISRUPTION</span><b id="disruption">NOMINAL</b></div>
+    <div class="metric"><span>MODEL STATE</span><b id="modelState">STABLE</b></div>
+    <div class="tiny" id="symbioteNote">NO FOREIGN PATTERN DETECTED.<br>AWAITING EXPOSURE SEQUENCE.</div>
+  </section>
+  <div class="controls">
+    <button id="infect" class="danger">▶ INITIATE INFECTION</button>
+    <button id="pulse">↯ PULSE</button>
+    <button id="recover">✚ INITIATE RECOVERY</button>
+    <button id="reset">↺ RESET HOST</button>
+  </div>
+</main>
+<footer class="bottom">
+  <div class="legend">
+    <span><i class="dot" style="color:#58eaff;background:#58eaff"></i>HEALTHY SIGNAL</span>
+    <span><i class="dot" style="color:#ff315d;background:#ff315d"></i>SYMBIOTE TRACE</span>
+    <span><i class="dot" style="color:#a56bff;background:#a56bff"></i>ALTERED WEIGHT</span>
+  </div>
+  <div class="readout" id="log">SYSTEM READY // VISUAL SIMULATION<br>PARAMETER CORRUPTION IS REPRESENTED ARTISTICALLY</div>
+</footer>
+</div>
+<script>
+(() => {
+const canvas=document.getElementById('space'),ctx=canvas.getContext('2d');
+let W,H,dpr,particles=[],edges=[],infection=0,target=0,pulse=0,phase='healthy',last=0;
+const layers=[7,10,10,4],nodes=[];
+function resize(){
+ dpr=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;
+ canvas.width=W*dpr;canvas.height=H*dpr;canvas.style.width=W+'px';canvas.style.height=H+'px';ctx.setTransform(dpr,0,0,dpr,0,0);
+ buildNodes();
+}
+function buildNodes(){
+ nodes.length=0;edges.length=0;
+ const cx=W*.5,cy=H*.51,span=Math.min(W*.52,720),top=H*.29,bottom=H*.73;
+ layers.forEach((count,l)=>{
+   const x=cx-span/2+(span/(layers.length-1))*l;
+   for(let i=0;i<count;i++){
+     const y=cy-(count-1)*Math.min(25,H*.035)/2+i*Math.min(25,H*.035);
+     nodes.push({x,y,layer:l,index:i,phase:Math.random()*6.28,r:l===0||l===3?4:3.3});
+   }
+ });
+ for(let l=0;l<layers.length-1;l++){
+   const a=nodes.filter(n=>n.layer===l),b=nodes.filter(n=>n.layer===l+1);
+   a.forEach(n=>b.forEach(m=>edges.push({a:n,b:m,seed:Math.random()*10,infected:Math.random()})));
+ }
+}
+function rand(a,b){return a+Math.random()*(b-a)}
+function spawn(){
+ particles=Array.from({length:Math.floor(Math.min(180,W*.16))},()=>({x:rand(0,W),y:rand(0,H),r:rand(.4,1.5),v:rand(.08,.32),a:rand(.12,.55)}));
+}
+function glow(color,blur){ctx.shadowColor=color;ctx.shadowBlur=blur}
+function drawGrid(t){
+ ctx.save();ctx.strokeStyle='rgba(74,180,220,.055)';ctx.lineWidth=1;
+ const gap=48,off=(t*.012)%gap;
+ for(let x=off;x<W;x+=gap){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+ for(let y=off;y<H;y+=gap){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ ctx.restore();
+}
+function draw(t){
+ ctx.clearRect(0,0,W,H);drawGrid(t);
+ particles.forEach(p=>{p.y-=p.v;if(p.y<0)p.y=H;ctx.fillStyle=`rgba(100,225,255,${p.a})`;ctx.fillRect(p.x,p.y,p.r,p.r)});
+ // faint concentric hologram rings
+ const cx=W/2,cy=H*.51,rad=Math.min(W*.29,H*.32);
+ ctx.save();ctx.translate(cx,cy);ctx.rotate(t*.00008);
+ for(let k=0;k<4;k++){ctx.beginPath();ctx.ellipse(0,0,rad*(.64+k*.12),rad*(.27+k*.06),0,0,Math.PI*2);ctx.strokeStyle=`rgba(74,220,255,${.12-k*.02})`;ctx.lineWidth=1;ctx.stroke()}
+ ctx.restore();
+ // neural connections
+ edges.forEach(e=>{
+   const infected=Math.max(0,Math.min(1,(infection*1.35-e.infected*.42)));
+   const flicker=.55+.45*Math.sin(t*.001+e.seed);
+   ctx.beginPath();ctx.moveTo(e.a.x,e.a.y);ctx.lineTo(e.b.x,e.b.y);
+   ctx.strokeStyle=infected>.08?`rgba(255,49,93,${(.12+infected*.43)*flicker})`:`rgba(77,210,255,${.12*flicker})`;
+   ctx.lineWidth=infected>.4?1.2:0.65;ctx.stroke();
+   if(infected>.18 && Math.random()<.035*infected){
+     const q=Math.random(),x=e.a.x+(e.b.x-e.a.x)*q,y=e.a.y+(e.b.y-e.a.y)*q;
+     ctx.beginPath();ctx.arc(x,y,rand(1,2.2),0,Math.PI*2);glow('#ff315d',9);ctx.fillStyle='#ff456c';ctx.fill();ctx.shadowBlur=0;
+   }
+ });
+ // symbiote tendrils crawl from the right edge into the network
+ if(infection>.01){
+   const roots=nodes.filter(n=>n.layer===3);
+   roots.forEach((n,i)=>{
+     const amount=infection;
+     for(let k=0;k<3;k++){
+       const reach=(.15+amount*.9)*Math.min(W*.42,440);
+       const x0=n.x+10,y0=n.y+(k-1)*5;
+       const x1=x0-reach*(.55+Math.sin(t*.001+i+k)*.08);
+       const y1=y0+Math.sin(t*.0015+i*2+k)*reach*.22+(k-1)*reach*.12;
+       ctx.beginPath();ctx.moveTo(x0,y0);
+       ctx.bezierCurveTo(x0-reach*.28,y0+Math.sin(t*.001+i)*35,x1+reach*.25,y1-30,x1,y1);
+       ctx.strokeStyle=`rgba(255,${Math.floor(42+infection*20)},${Math.floor(85+infection*35)},${.3+infection*.6})`;
+       ctx.lineWidth=1+infection*2.4;glow('#ff174f',8+infection*14);ctx.stroke();ctx.shadowBlur=0;
+       // tiny barbs
+       if(infection>.2){for(let b=1;b<4;b++){const q=b/4,px=x0+(x1-x0)*q,py=y0+(y1-y0)*q;ctx.beginPath();ctx.moveTo(px,py);ctx.lineTo(px-7*infection,py-9*infection);ctx.strokeStyle='rgba(255,65,110,.65)';ctx.lineWidth=1;ctx.stroke()}}
+     }
+   });
+   // branching web-like tendrils over central network
+   for(let j=0;j<Math.floor(infection*18);j++){
+     const x=cx+Math.sin(j*12.2+t*.0005)*rad*.7,y=cy+Math.cos(j*4.7+t*.0006)*rad*.55;
+     ctx.beginPath();ctx.moveTo(W*.78,cy+Math.sin(j)*rad*.2);
+     ctx.quadraticCurveTo(x+30*Math.sin(t*.001+j),y-35,x,y);
+     ctx.strokeStyle=`rgba(255,49,93,${.08+infection*.2})`;ctx.lineWidth=1;ctx.stroke();
+   }
+ }
+ // nodes
+ nodes.forEach(n=>{
+   const affected=infection>0 && (n.layer>=2?infection*.95:infection*.42)>.2 && Math.sin(n.index*8+n.layer*4) < infection*1.5-.35;
+   const color=affected?'#ff456e':'#69eaff';
+   const r=n.r+(affected?1.2:0)+Math.sin(t*.002+n.phase)*.45;
+   ctx.beginPath();ctx.arc(n.x,n.y,r+4,0,Math.PI*2);ctx.fillStyle=affected?'rgba(255,49,93,.10)':'rgba(75,225,255,.09)';ctx.fill();
+   ctx.beginPath();ctx.arc(n.x,n.y,r,0,Math.PI*2);glow(color,affected?15:12);ctx.fillStyle=color;ctx.fill();ctx.shadowBlur=0;
+   ctx.beginPath();ctx.arc(n.x-1,n.y-1,1,0,Math.PI*2);ctx.fillStyle='#efffff';ctx.fill();
+ });
+ // pulse ring
+ if(pulse>0){ctx.beginPath();ctx.arc(cx,cy,rad*(1.2-pulse*.55),0,Math.PI*2);ctx.strokeStyle=`rgba(100,235,255,${pulse*.6})`;ctx.lineWidth=2;glow('#56eaff',18);ctx.stroke();ctx.shadowBlur=0;pulse=Math.max(0,pulse-.012)}
+ // labels under layer
+ ctx.font='9px Segoe UI';ctx.textAlign='center';ctx.fillStyle='rgba(113,188,211,.6)';
+ ['INPUT','HIDDEN 01','HIDDEN 02','OUTPUT'].forEach((s,i)=>{const x=W/2-Math.min(W*.52,720)/2+Math.min(W*.52,720)/3*i;ctx.fillText(s,x,H*.79)});
+ requestAnimationFrame(draw);
+}
+function updateUI(){
+ const pct=Math.round(infection*100),integrity=100-Math.round(infection*65);
+ document.getElementById('infection').textContent=pct+'%';
+ document.getElementById('infectionBar').style.width=pct+'%';
+ document.getElementById('integrity').textContent=integrity+'%';
+ document.getElementById('integrityBar').style.width=integrity+'%';
+ document.getElementById('disruption').textContent=infection<.08?'NOMINAL':infection<.45?'ELEVATED':'SEVERE';
+ document.getElementById('modelState').textContent=infection<.08?'STABLE':infection<.75?'ALTERED':'CRITICAL';
+ document.getElementById('phase').textContent=infection<.08?'HEALTHY NETWORK':infection<.95?'SYMBIOTE INFECTION':'HOST OVERRUN';
+ document.getElementById('status').textContent=infection<.08?'HOST NETWORK ONLINE':infection<.95?'FOREIGN PATTERN DETECTED':'HOST INTEGRITY CRITICAL';
+ document.getElementById('symbioteNote').innerHTML=infection<.08?'NO FOREIGN PATTERN DETECTED.<br>AWAITING EXPOSURE SEQUENCE.':infection<.95?'SYMBIOTE TRACE SPREADING<br>ACROSS SYNAPTIC CONNECTIONS.':'NEURAL SIGNALS OVERRIDDEN.<br>RECOVERY PROTOCOL ADVISED.';
+ document.getElementById('log').innerHTML=`SIMULATION INTENSITY // ${pct}%<br>ARTISTIC VISUALIZATION · NOT A LIVE MODEL ATTACK`;
+}
+function animateTo(v,label){
+ target=Math.max(0,Math.min(1,v));phase=label;
+ const start=infection,begin=performance.now(),duration=1300;
+ function step(now){const p=Math.min(1,(now-begin)/duration);infection=start+(target-start)*(1-Math.pow(1-p,3));updateUI();if(p<1)requestAnimationFrame(step)}
+ requestAnimationFrame(step);
+ const toast=document.getElementById('toast');toast.textContent=label==='infect'?'SYMBIOTE SIGNATURE DETECTED':'RECOVERY SEQUENCE ENGAGED';toast.style.opacity=1;setTimeout(()=>toast.style.opacity=0,1700);
+}
+document.getElementById('infect').onclick=()=>animateTo(1,'infect');
+document.getElementById('recover').onclick=()=>animateTo(0,'recover');
+document.getElementById('pulse').onclick=()=>{pulse=1;document.getElementById('log').innerHTML='SYNAPTIC PULSE EMITTED<br>MONITORING NETWORK RESPONSE'};
+document.getElementById('reset').onclick=()=>{animateTo(0,'healthy');document.getElementById('log').innerHTML='HOST RESET COMPLETE<br>BASELINE VISUAL STATE RESTORED'};
+addEventListener('resize',()=>{resize();spawn()});
+resize();spawn();updateUI();requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>

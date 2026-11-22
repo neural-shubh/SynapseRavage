@@ -8,7 +8,7 @@
 
 *A tiny PyTorch experiment inspired by Spider-Man's symbiote — except the host is a neural network.*
 
-<img src="assets/synapseravage-hologram.png" alt="SynapseRavage holographic laboratory dashboard" width="100%">
+<[img src="assets/synapseravage-hologram.png" alt="SynapseRavage holographic laboratory dashboard" width="100%"](https://neural-shubh.github.io/SynapseRavage/)>
 
 `PYTORCH` · `NEURAL NETWORKS` · `ROBUSTNESS` · `FINE-TUNING`
 
